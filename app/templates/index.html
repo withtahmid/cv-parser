@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CV Parser - Upload & Extract</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+
+            .header {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+                font-weight: 700;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+
+            .main-content {
+                padding: 40px;
+            }
+
+            .upload-section {
+                background: #f8f9fa;
+                border: 3px dashed #dee2e6;
+                border-radius: 15px;
+                padding: 40px;
+                text-align: center;
+                margin-bottom: 30px;
+                transition: all 0.3s ease;
+            }
+
+            .upload-section:hover {
+                border-color: #4facfe;
+                background: #f0f8ff;
+            }
+
+            .upload-section.dragover {
+                border-color: #00f2fe;
+                background: #e6f7ff;
+                transform: scale(1.02);
+            }
+
+            .upload-icon {
+                font-size: 3rem;
+                color: #6c757d;
+                margin-bottom: 20px;
+            }
+
+            .file-input {
+                display: none;
+            }
+
+            .upload-btn {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 50px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 10px;
+            }
+
+            .upload-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+            }
+
+            .process-btn {
+                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                color: white;
+                padding: 15px 40px;
+                border: none;
+                border-radius: 50px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 20px 0;
+            }
+
+            .process-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(56, 239, 125, 0.3);
+            }
+
+            .process-btn:disabled {
+                background: #6c757d;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .file-list {
+                margin: 20px 0;
+                text-align: left;
+            }
+
+            .file-item {
+                background: white;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 10px;
+                border-left: 4px solid #4facfe;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .loading {
+                display: none;
+                text-align: center;
+                padding: 30px;
+            }
+
+            .spinner {
+                width: 50px;
+                height: 50px;
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #4facfe;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .results-section {
+                display: none;
+                margin-top: 30px;
+            }
+
+            .results-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .field-card {
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                border-left: 4px solid #4facfe;
+                transition: all 0.3s ease;
+            }
+
+            .field-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            }
+
+            .field-label {
+                font-weight: 600;
+                color: #495057;
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .field-value {
+                color: #212529;
+                font-size: 1rem;
+                line-height: 1.5;
+                cursor: pointer;
+                padding: 10px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+            }
+
+            .field-value:hover {
+                background: #f8f9fa;
+            }
+
+            .copy-feedback {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 50px;
+                font-weight: 600;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.3s ease;
+                z-index: 1000;
+            }
+
+            .copy-feedback.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .export-section {
+                margin-top: 30px;
+                padding-top: 30px;
+                border-top: 2px solid #e9ecef;
+                text-align: center;
+            }
+
+            .export-btn {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 50px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .export-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(250, 112, 154, 0.3);
+            }
+
+            .sheets-status {
+                margin-top: 30px;
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+            }
+
+            .status-message {
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                font-weight: 600;
+            }
+
+            .status-success {
+                background: #d4edda;
+                color: #155724;
+                border-left: 4px solid #28a745;
+            }
+
+            .status-error {
+                background: #f8d7da;
+                color: #721c24;
+                border-left: 4px solid #dc3545;
+            }
+
+            .status-processing {
+                background: #d1ecf1;
+                color: #0c5460;
+                border-left: 4px solid #17a2b8;
+            }
+
+            .view-sheets-btn {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 50px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                text-decoration: none;
+                display: inline-block;
+                transition: all 0.3s ease;
+            }
+
+            .view-sheets-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+                text-decoration: none;
+                color: white;
+            }
+
+            .error-message {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 20px 0;
+                border-left: 4px solid #dc3545;
+            }
+
+            @media (max-width: 768px) {
+                .header h1 {
+                    font-size: 2rem;
+                }
+
+                .main-content {
+                    padding: 20px;
+                }
+
+                .results-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="main-content">
+                <div class="upload-section" id="uploadSection">
+                    <div class="upload-icon">📁</div>
+                    <h3>Upload CV Images</h3>
+                    <p>Select one or multiple images of CV pages</p>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        class="file-input"
+                        multiple
+                        accept="image/*"
+                    />
+                    <button
+                        class="upload-btn"
+                        onclick="document.getElementById('fileInput').click()"
+                    >
+                        Choose Files
+                    </button>
+                    <p style="margin-top: 15px; color: #6c757d">
+                        Supported formats: JPG, PNG, GIF, BMP, TIFF
+                    </p>
+                </div>
+
+                <div class="file-list" id="fileList"></div>
+
+                <div style="text-align: center">
+                    <button
+                        class="process-btn"
+                        id="processBtn"
+                        onclick="processFiles()"
+                        disabled
+                    >
+                        🔄 Process CV
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <h3>Processing your CV...</h3>
+                    <p>Extracting text and analyzing with AI</p>
+                </div>
+
+                <div class="results-section" id="resultsSection">
+                    <div id="sheetsStatus" class="sheets-status">
+                        <div class="status-message" id="statusMessage"></div>
+                        <div
+                            class="sheets-link"
+                            id="sheetsLink"
+                            style="display: none"
+                        >
+                            <a
+                                href="#"
+                                id="viewSheetsBtn"
+                                target="_blank"
+                                class="view-sheets-btn"
+                            >
+                                📊 View in Google Sheets
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="copy-feedback" id="copyFeedback">
+            Copied to clipboard! ✓
+        </div>
+
+        <script>
+            let selectedFiles = [];
+            let currentSessionId = null;
+
+            // File upload handling
+            document
+                .getElementById("fileInput")
+                .addEventListener("change", function (e) {
+                    selectedFiles = Array.from(e.target.files);
+                    displayFileList();
+                    updateProcessButton();
+                });
+
+            // Drag and drop functionality
+            const uploadSection = document.getElementById("uploadSection");
+
+            uploadSection.addEventListener("dragover", function (e) {
+                e.preventDefault();
+                uploadSection.classList.add("dragover");
+            });
+
+            uploadSection.addEventListener("dragleave", function (e) {
+                e.preventDefault();
+                uploadSection.classList.remove("dragover");
+            });
+
+            uploadSection.addEventListener("drop", function (e) {
+                e.preventDefault();
+                uploadSection.classList.remove("dragover");
+
+                const files = Array.from(e.dataTransfer.files).filter((file) =>
+                    file.type.startsWith("image/")
+                );
+
+                if (files.length > 0) {
+                    selectedFiles = files;
+                    document.getElementById("fileInput").files =
+                        e.dataTransfer.files;
+                    displayFileList();
+                    updateProcessButton();
+                }
+            });
+
+            function displayFileList() {
+                const fileListDiv = document.getElementById("fileList");
+                if (selectedFiles.length === 0) {
+                    fileListDiv.innerHTML = "";
+                    return;
+                }
+
+                const fileListHTML = selectedFiles
+                    .map(
+                        (file, index) => `
+                <div class="file-item">
+                    <div>
+                        <strong>${file.name}</strong>
+                        <span style="color: #6c757d; margin-left: 10px;">
+                            ${(file.size / 1024 / 1024).toFixed(2)} MB
+                        </span>
+                    </div>
+                    <button onclick="removeFile(${index})" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;">
+                        ✕
+                    </button>
+                </div>
+            `
+                    )
+                    .join("");
+
+                fileListDiv.innerHTML = `
+                <h4>Selected Files (${selectedFiles.length})</h4>
+                ${fileListHTML}
+            `;
+            }
+
+            function removeFile(index) {
+                selectedFiles.splice(index, 1);
+                displayFileList();
+                updateProcessButton();
+            }
+
+            function updateProcessButton() {
+                const processBtn = document.getElementById("processBtn");
+                processBtn.disabled = selectedFiles.length === 0;
+            }
+            function compressImage(file, maxSizeMB = 1, quality = 0.8) {
+                return new Promise((resolve) => {
+                    // If file is already under 1MB, return as is
+                    if (file.size <= maxSizeMB * 1024 * 1024) {
+                        resolve(file);
+                        return;
+                    }
+
+                    // Only process image files
+                    if (!file.type.startsWith("image/")) {
+                        resolve(file);
+                        return;
+                    }
+
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    const img = new Image();
+
+                    img.onload = function () {
+                        // Calculate new dimensions to reduce file size
+                        let { width, height } = img;
+                        const maxDimension = 1920; // Max width/height
+
+                        if (width > maxDimension || height > maxDimension) {
+                            if (width > height) {
+                                height = (height * maxDimension) / width;
+                                width = maxDimension;
+                            } else {
+                                width = (width * maxDimension) / height;
+                                height = maxDimension;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        // Draw and compress
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Try different quality levels until under size limit
+                        let currentQuality = quality;
+
+                        const tryCompress = () => {
+                            canvas.toBlob(
+                                (blob) => {
+                                    if (
+                                        blob.size <= maxSizeMB * 1024 * 1024 ||
+                                        currentQuality <= 0.1
+                                    ) {
+                                        // Create new file with compressed data
+                                        const compressedFile = new File(
+                                            [blob],
+                                            file.name,
+                                            {
+                                                type: file.type,
+                                                lastModified: Date.now(),
+                                            }
+                                        );
+                                        resolve(compressedFile);
+                                    } else {
+                                        // Reduce quality and try again
+                                        currentQuality -= 0.1;
+                                        tryCompress();
+                                    }
+                                },
+                                file.type,
+                                currentQuality
+                            );
+                        };
+
+                        tryCompress();
+                    };
+
+                    // Load the image
+                    img.src = URL.createObjectURL(file);
+                });
+            }
+            async function processFiles() {
+                if (selectedFiles.length === 0) return;
+
+                // Show loading
+                document.getElementById("loading").style.display = "block";
+                document.getElementById("resultsSection").style.display =
+                    "none";
+                document.getElementById("processBtn").disabled = true;
+
+                try {
+                    // Compress images before uploading
+                    // const startTime = Date.now();
+                    const compressedFiles = await Promise.all(
+                        selectedFiles.map((file) => compressImage(file))
+                    );
+                    const formData = new FormData();
+                    compressedFiles.forEach((file) => {
+                        formData.append("files", file);
+                    });
+
+                    const response = await fetch("/upload", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        currentSessionId = result.session_id;
+                        displayResults(result.extracted_data);
+                        displaySheetsStatus(result.sheets_result);
+                    } else {
+                        showError(
+                            result.error || "An error occurred while processing"
+                        );
+                    }
+                } catch (error) {
+                    showError("Error processing files: " + error.message);
+                } finally {
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("processBtn").disabled = false;
+                    selectedFiles = [];
+                    displayFileList();
+                    updateProcessButton();
+                    document.getElementById("fileInput").value = "";
+                    document
+                        .getElementById("uploadSection")
+                        .classList.remove("dragover");
+                    document.getElementById("resultsSection").style.display =
+                        "block";
+                }
+            }
+
+            function displayResults(data) {
+                const resultsGrid = document.getElementById("resultsGrid");
+                const resultsSection =
+                    document.getElementById("resultsSection");
+
+                if (!data || typeof data !== "object") {
+                    showError("Invalid data received from server");
+                    return;
+                }
+
+                const fieldsHTML = Object.entries(data)
+                    .map(([key, value]) => {
+                        const displayKey = key
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase());
+                        const displayValue = value || "";
+
+                        return `
+                            <div class="field-card">
+                                <div class="field-label">${displayKey}</div>
+                                <div class="field-value" onclick="copyToClipboard('${escapeHtml(
+                                    displayValue
+                                )}')" title="Click to copy">
+                                    ${escapeHtml(displayValue)}
+                                </div>
+                            </div>
+                `;
+                    })
+                    .join("");
+
+                // resultsGrid.innerHTML = fieldsHTML;
+                // resultsSection.style.display = "block";
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement("div");
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function copyToClipboard(text) {
+                navigator.clipboard
+                    .writeText(text)
+                    .then(() => {
+                        showCopyFeedback();
+                    })
+                    .catch((err) => {
+                        console.error("Failed to copy: ", err);
+                        // Fallback for older browsers
+                        const textArea = document.createElement("textarea");
+                        textArea.value = text;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(textArea);
+                        showCopyFeedback();
+                    });
+            }
+
+            function showCopyFeedback() {
+                const feedback = document.getElementById("copyFeedback");
+                feedback.classList.add("show");
+                setTimeout(() => {
+                    feedback.classList.remove("show");
+                }, 2000);
+            }
+
+            function displaySheetsStatus(sheetsResult) {
+                const statusMessage = document.getElementById("statusMessage");
+                const sheetsLink = document.getElementById("sheetsLink");
+                const viewSheetsBtn = document.getElementById("viewSheetsBtn");
+
+                if (!sheetsResult) {
+                    statusMessage.textContent = "No sheets status available";
+                    statusMessage.className = "status-message status-error";
+                    return;
+                }
+
+                if (sheetsResult.success) {
+                    statusMessage.textContent =
+                        "✅ Data successfully saved to Google Sheets!";
+                    statusMessage.className = "status-message status-success";
+
+                    if (sheetsResult.spreadsheet_url) {
+                        viewSheetsBtn.href = sheetsResult.spreadsheet_url;
+                        sheetsLink.style.display = "block";
+                    }
+                } else if (sheetsResult.error) {
+                    statusMessage.textContent = `❌ Error saving to Google Sheets: ${sheetsResult.error}`;
+                    statusMessage.className = "status-message status-error";
+                    sheetsLink.style.display = "none";
+                } else {
+                    statusMessage.textContent =
+                        "⏳ Processing data for Google Sheets...";
+                    statusMessage.className =
+                        "status-message status-processing";
+                    sheetsLink.style.display = "none";
+                }
+            }
+
+            function showError(message) {
+                const errorDiv = document.createElement("div");
+                errorDiv.className = "error-message";
+                errorDiv.innerHTML = `<strong>Error:</strong> ${message}`;
+
+                const mainContent = document.querySelector(".main-content");
+                const existingError =
+                    mainContent.querySelector(".error-message");
+                if (existingError) {
+                    existingError.remove();
+                }
+
+                mainContent.appendChild(errorDiv);
+
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+            }
+        </script>
+    </body>
+</html>

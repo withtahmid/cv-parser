@@ -1,0 +1,13 @@
+pytesseract
+Pillow
+openai
+python-dotenv
+google-generativeai
+Flask
+Flask-CORS
+pytesseract
+pandas
+openpyxl
+Werkzeug
+gspread
+google-auth
