@@ -34,7 +34,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-def ocr_space_file(filename, overlay=False, api_key='helloworld', language='eng'):
+OCR_API_KEY = os.getenv("OCR_API_KEY", "helloworld")
+
+def ocr_space_file(filename, overlay=False, api_key=OCR_API_KEY, language='eng'):
     """ OCR.space API request with local file.
         Python3.5 - not tested on 2.7
     :param filename: Your file path & name.
@@ -338,7 +340,7 @@ def upload_files():
 
             # Extract text from the image
             # text = extract_text(filepath)
-            ocr_result = ocr_space_file(filepath, overlay=False, api_key='K88849901888957', language='eng')
+            ocr_result = ocr_space_file(filepath)
             ocr_data = json.loads(ocr_result)
             # print(ocr_data)
             parsed_text = ocr_data['ParsedResults'][0]['ParsedText']
