@@ -35,7 +35,7 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 OCR_API_KEY = os.getenv("OCR_API_KEY", "helloworld")
-
+print(f"Using OCR API Key: {OCR_API_KEY}")  # Debugging output
 def ocr_space_file(filename, overlay=False, api_key=OCR_API_KEY, language='eng'):
     """ OCR.space API request with local file.
         Python3.5 - not tested on 2.7
@@ -186,7 +186,7 @@ def insert_to_google_sheets(data):
             extracted_data.get('present_address', '')
         ]
         
-       
+        # print(f"Inserting row data: {row_data}")  # Debugging output
         # Insert the row
         worksheet.append_row(row_data)
         

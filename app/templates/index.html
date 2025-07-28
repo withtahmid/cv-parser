@@ -382,6 +382,12 @@
                 </div>
 
                 <div class="results-section" id="resultsSection">
+                    <h2>📊 Extracted Data</h2>
+                    <p style="margin-bottom: 20px; color: #6c757d">
+                        Click on any field to copy its value
+                    </p>
+                    <div class="results-grid" id="resultsGrid"></div>
+
                     <div id="sheetsStatus" class="sheets-status">
                         <div class="status-message" id="statusMessage"></div>
                         <div
@@ -579,10 +585,11 @@
 
                 try {
                     // Compress images before uploading
-                    // const startTime = Date.now();
+
                     const compressedFiles = await Promise.all(
                         selectedFiles.map((file) => compressImage(file))
                     );
+
                     const formData = new FormData();
                     compressedFiles.forEach((file) => {
                         formData.append("files", file);
@@ -651,8 +658,8 @@
                     })
                     .join("");
 
-                // resultsGrid.innerHTML = fieldsHTML;
-                // resultsSection.style.display = "block";
+                resultsGrid.innerHTML = fieldsHTML;
+                resultsSection.style.display = "block";
             }
 
             function escapeHtml(text) {
