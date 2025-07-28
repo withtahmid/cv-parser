@@ -32,7 +32,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Configure Gemini
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 OCR_API_KEY = os.getenv("OCR_API_KEY", "helloworld")
 print(f"Using OCR API Key: {OCR_API_KEY}")  # Debugging output
